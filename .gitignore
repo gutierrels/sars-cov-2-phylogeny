@@ -1,0 +1,5 @@
+data/
+results/
+.venv/
+.snakemake/
+filter/target/
