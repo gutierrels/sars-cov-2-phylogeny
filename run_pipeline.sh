@@ -8,4 +8,4 @@ echo "Asegurando permisos del binario de Rust..."
 chmod +x bin/sars_filter
 
 echo "Lanzando el pipeline de Snakemake..."
-uv run snakemake -c 16
+uv run snakemake -c 16 --rerun-incomplete
