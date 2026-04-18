@@ -1,6 +1,6 @@
 # Pipeline de Inferencia Filogenética para SARS-CoV-2
 
-Pipeline automatizado de alto rendimiento orquestado con Snakemake. Combina procesamiento de bajo nivel en Rust para el filtrado de secuencias, análisis vectorial en Python (NumPy/Biopython) para el control de calidad, e inferencia de Máxima Verosimilitud (C++). Todo el entorno de ejecución está garantizado y aislado mediante uv.
+Pipeline automatizado de alto rendimiento orquestado con Snakemake. Combina procesamiento de bajo nivel en Rust para el filtrado de secuencias, análisis vectorial en Python (NumPy/Biopython) para el control de calidad, e inferencia de Máxima Verosimilitud. Todo el entorno de ejecución está garantizado y aislado mediante uv.
 
 ## Requisitos del Sistema (Dependencies)
 
@@ -8,13 +8,13 @@ Pipeline automatizado de alto rendimiento orquestado con Snakemake. Combina proc
 
 Para poder ejecutar el pipeline, es necesario contar con las siguientes dependencias instaladas en el sistema:
 
-* **uv**: Gestor de paquetes ultrarrápido (sustituto de pip/venv).
+* **uv**: Gestor de paquetes (sustituto de pip/venv).
 * **mafft**: Herramienta de alineamiento múltiple (debe estar en el PATH del sistema).
 * **NCBI Datasets CLI y unzip**: Requeridos únicamente si se va a ejecutar `download.sh`.
 
-> **Nota Arquitectónica:** Para garantizar la portabilidad sin necesidad de compiladores locales, el filtro rápido de control de calidad (`sars_filter`) y el motor de inferencia filogenética (`iqtree3`) se proporcionan como binarios precompilados en la carpeta `bin/`.
+> **Nota:** Para garantizar la portabilidad sin necesidad de compiladores locales, el filtro rápido de control de calidad (`sars_filter`) y el motor de inferencia filogenética (`iqtree3`) se proporcionan como binarios precompilados en la carpeta `bin/`.
 
-## Fases del Pipeline (Arquitectura de Datos)
+## Fases del Pipeline
 
 El flujo del grafo acíclico dirigido (DAG) de Snakemake se divide en:
 
@@ -24,7 +24,7 @@ El flujo del grafo acíclico dirigido (DAG) de Snakemake se divide en:
 * **Fase 4 (Python/NumPy)**: Limpieza matricial de gaps y generación de histogramas de variabilidad posicional.
 * **Fase 5 (IQ-TREE)**: Construcción del árbol filogenético (Maximum Likelihood) con selección automática de modelo evolutivo.
 
-## Instrucciones de Ejecución (Reproducibilidad)
+## Instrucciones de Ejecución 
 
 ```bash
 # 1. Clonar el repositorio

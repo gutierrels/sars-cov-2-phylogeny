@@ -96,7 +96,8 @@ Para asegurar la mantenibilidad y modularidad del software, el repositorio sigue
 \section{Diseño del Grafo Acíclico Dirigido (DAG)}
 El flujo de ejecución está gobernado por \textbf{Snakemake} a través de un Grafo Acíclico Dirigido (DAG), el cual asegura que cada regla se ejecute únicamente cuando sus dependencias directas e indirectas estén satisfechas.
 
-\begin{center}
+\begin{figure}[htbp]
+    \centering
     \begin{tikzpicture}[node distance=2cm]
         \node (descarga) [process] {1. Descarga (NCBI)};
         \node (rust) [process, below of=descarga] {2. Rust Filter (\texttt{sars\_filter})};
@@ -109,7 +110,9 @@ El flujo de ejecución está gobernado por \textbf{Snakemake} a través de un Gr
         \draw [arrow] (mafft) -- (python);
         \draw [arrow] (python) -- (iqtree);
     \end{tikzpicture}
-\end{center}
+    \caption{Grafo Acíclico Dirigido (DAG) que ilustra las 5 fases secuenciales del pipeline.}
+    \label{fig:dag_pipeline}
+\end{figure}
 
 \section{Fundamentos Matemáticos e Implementación}
 
