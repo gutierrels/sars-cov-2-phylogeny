@@ -1,25 +1,22 @@
-# --- Pipeline configuration ---
-# Number of threads for MAFFT
+# --- Configuración del pipeline ---
 THREADS = 16
 
-# --- Main rule ---
-# Snakemake checks this rule first to determine the final target.
+# --- Regla principal (El objetivo final) ---
 rule all:
     input:
-        "results/alignment/aligned.fasta"
+        "results/tree/sars_cov_2.treefile",
+        "results/qc/variability_plot.pdf"
 
-# --- Phase 2: Rust-based filtering ---
+# --- Fase 2: Filtrado en Rust ---
 rule filter_sequences:
     input:
         raw="data/dataset_poc.fasta"
     output:
         filtered="data/filtered_poc.fasta"
     shell:
-        """
-        ./filter/target/release/filter --input {input.raw} --output {output.filtered} --min-len 29000 --max-len 30500
-        """
+        "./filter/target/release/filter --input {input.raw} --output {output.filtered} --min-len 29000 --max-len 30500"
 
-# --- Phase 3: Alignment with MAFFT ---
+# --- Fase 3: Alineamiento con MAFFT ---
 rule align_sequences:
     input:
         "data/filtered_poc.fasta"
@@ -29,8 +26,26 @@ rule align_sequences:
     log:
         "results/logs/mafft.log"
     shell:
-        """
-        # Use --auto so MAFFT picks the best algorithm (FFT-NS-2 or similar)
-        # stdout goes to the output file, stderr/info goes to the log
-        mafft --auto --thread {threads} {input} > {output} 2> {log}
-        """
+        "mafft --auto --thread {threads} {input} > {output} 2> {log}"
+
+# --- Fase 4: Limpieza y Gráfica (Python + NumPy) ---
+rule quality_control:
+    input:
+        "results/alignment/aligned.fasta"
+    output:
+        clean_aln="results/alignment/aligned_filtered.fasta",
+        plot="results/qc/variability_plot.pdf"
+    shell:
+        "uv run scripts/qc_alignment.py --input {input} --out-fasta {output.clean_aln} --out-plot {output.plot}"
+
+# --- Fase 5: Inferencia Filogenética con IQ-TREE ---
+rule build_tree:
+    input:
+        "results/alignment/aligned_filtered.fasta"
+    output:
+        "results/tree/sars_cov_2.treefile"
+    threads: THREADS
+    log:
+        "results/logs/iqtree.log"
+    shell:
+        "./bin/iqtree3 -s {input} -T {threads} -m TEST -pre results/tree/sars_cov_2 > {log} 2>&1"

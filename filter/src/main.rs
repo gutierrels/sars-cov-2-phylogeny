@@ -30,7 +30,7 @@ fn main() -> Result<()> {
     let args = Args::parse();
     let start_time = Instant::now();
 
-    println!("Starting high-speed filtering...");
+    println!("Starting filtering...");
     println!("Input:  {}", args.input);
     println!("Output: {}", args.output);
     println!("Allowed range: {} - {} bp\n", args.min_len, args.max_len);

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import numpy as np
-from Bio import AlignIO
+from Bio import AlignIO, SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 import matplotlib.pyplot as plt
@@ -44,7 +44,7 @@ def main():
 
     valid_ids = np.array([rec.id for rec in alignment])[valid_rows]
     clean_records = [SeqRecord(Seq("".join(seq)), id=vid, description="") for seq, vid in zip(clean_mat, valid_ids)]
-    AlignIO.write(clean_records, args.out_fasta, "fasta")
+    SeqIO.write(clean_records, args.out_fasta, "fasta")
 
 if __name__ == "__main__":
     main()
