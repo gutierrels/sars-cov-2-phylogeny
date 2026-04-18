@@ -26,6 +26,8 @@ El flujo del grafo acíclico dirigido (DAG) de Snakemake se divide en:
 
 ## Instrucciones de Ejecución 
 
+> **Nota sobre los Datos:** El repositorio incluye un *Toy Dataset* de 100 genomas en `data/sample/` para pruebas rápidas. Snakemake lo utilizará automáticamente por defecto a menos que se ejecute manualmente el script de descarga del NCBI.
+
 ```bash
 # 1. Clonar el repositorio
 git clone https://github.com/gutierrels/sars-cov-2-phylogeny.git

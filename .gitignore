@@ -1,4 +1,6 @@
 data/
+!data/sample/
+!data/sample/*
 results/
 .venv/
 .snakemake/

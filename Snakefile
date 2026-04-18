@@ -1,5 +1,12 @@
+import os
+
 # --- Configuración del pipeline ---
 THREADS = 16
+
+# Lógica de Fallback para el dataset de entrada
+RAW_DATASET = "data/dataset_poc.fasta"
+if not os.path.exists(RAW_DATASET):
+    RAW_DATASET = "data/sample/poc_100_genomes.fasta"
 
 # --- Regla principal (El objetivo final) ---
 rule all:
@@ -10,7 +17,7 @@ rule all:
 # --- Fase 2: Filtrado en Rust ---
 rule filter_sequences:
     input:
-        raw="data/dataset_poc.fasta"
+        raw=RAW_DATASET
     output:
         filtered="data/filtered_poc.fasta"
     shell:
