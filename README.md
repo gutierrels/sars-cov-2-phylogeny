@@ -26,7 +26,7 @@ El flujo del grafo acíclico dirigido (DAG) de Snakemake se divide en:
 
 ## Instrucciones de Ejecución 
 
-> **Nota sobre los Datos:** El repositorio incluye un *Toy Dataset* de 100 genomas en `data/sample/` para pruebas rápidas. Snakemake lo utilizará automáticamente por defecto a menos que se ejecute manualmente el script de descarga del NCBI.
+> **Nota sobre los Datos:** El repositorio incluye un *Toy Dataset* de 100 genomas de la variante **Ómicron (B.1.1.529)** en `data/sample/` para pruebas rápidas. Snakemake lo utilizará automáticamente por defecto a menos que se ejecute manualmente el script de descarga del NCBI.
 
 ```bash
 # 1. Clonar el repositorio
