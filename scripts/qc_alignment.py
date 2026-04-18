@@ -39,6 +39,8 @@ def main():
     plt.figure(figsize=(10, 6))
     plt.hist(changes_per_col, bins=50, color='skyblue', edgecolor='black', log=True)
     plt.title('Distribución de Variabilidad SARS-CoV-2')
+    plt.xlabel('Número de mutaciones/cambios por posición')
+    plt.ylabel('Frecuencia (Posiciones del genoma) - Escala Log')
     plt.savefig(args.out_plot, dpi=300)
     plt.close()
 

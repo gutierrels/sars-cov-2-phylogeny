@@ -6,3 +6,11 @@ sars_filter/target/
 __pycache__/
 *.pyc
 .DS_Store
+
+# Archivos temporales de LaTeX
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
