@@ -2,7 +2,7 @@ data/
 results/
 .venv/
 .snakemake/
-filter/target/
+sars_filter/target/
 __pycache__/
 *.pyc
 .DS_Store
