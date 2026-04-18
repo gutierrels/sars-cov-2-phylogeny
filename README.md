@@ -50,3 +50,9 @@ Al finalizar, se generará una carpeta `results/` (ignorada en Git) que contendr
 * `results/tree/sars_cov_2.treefile`: Árbol en formato Newick.
 * `results/qc/variability_plot.pdf`: Histograma de mutaciones/gaps.
 * `results/logs/`: Registros estándar y de error de cada regla.
+
+## Resultados Esperados (Prueba de Concepto - Variante Ómicron)
+Al ejecutar el pipeline con el *Toy Dataset* incluido, se generarán automáticamente los siguientes análisis:
+
+![Árbol Filogenético](doc/assets/arbol_circular.svg)
+![Distribución de Mutaciones](doc/assets/histograma.png)
