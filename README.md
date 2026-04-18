@@ -28,7 +28,7 @@ El flujo del grafo acíclico dirigido (DAG) de Snakemake se divide en:
 
 ```bash
 # 1. Clonar el repositorio
-git clone <URL_DEL_REPO>
+git clone https://github.com/gutierrels/sars-cov-2-phylogeny.git
 cd sars-cov-2-phylogeny
 
 # 2. Sincronizar el entorno de Python usando el uv.lock
