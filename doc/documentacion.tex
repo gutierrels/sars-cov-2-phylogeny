@@ -1,0 +1,100 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{geometry}
+
+\geometry{left=2.5cm,right=2.5cm,top=3cm,bottom=3cm}
+
+\title{\textbf{Pipeline de Inferencia Filogenética para SARS-CoV-2}\\
+\large Documentación del Proyecto}
+\author{Guillermo Gutiérrez Caracuel}
+\date{\today}
+
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegray},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+    Este documento describe un pipeline automatizado de alto rendimiento para la inferencia filogenética de secuencias de SARS-CoV-2. Orquestado mediante \textit{Snakemake}, el flujo de trabajo integra herramientas de bajo nivel en Rust para filtrado inicial, alineamiento paralelo con MAFFT, control de calidad matricial en Python (NumPy/Biopython) y construcción de árboles filogenéticos por Máxima Verosimilitud (Maximum Likelihood) usando IQ-TREE. Todo el entorno está rigurosamente reproducido a través del gestor de paquetes \texttt{uv}.
+\end{abstract}
+
+\section{Introducción}
+El análisis filogenético a gran escala de secuencias virales requiere soluciones eficientes y completamente automatizadas. Este pipeline se ha diseñado para procesar secuencias genómicas del virus SARS-CoV-2 (incluyendo diversas variantes de preocupación o VOCs) y generar árboles filogenéticos robustos con una intervención manual mínima. Se hace especial énfasis en la reproducibilidad técnica, el rendimiento computacional mediante paralelización y la robustez del código.
+
+\section{Arquitectura y Metodología}
+El flujo de trabajo se modela como un Grafo Acíclico Dirigido (DAG) mediante el orquestador \textbf{Snakemake}. Consta de cinco fases principales que abarcan desde la recolección de datos hasta el modelado evolutivo:
+
+\subsection{Fase 1: Obtención de Datos (Bash)}
+Descarga automatizada de genomas completos de distintas variantes desde la base de datos del NCBI utilizando el binario \texttt{datasets CLI}. Las secuencias descargadas (archivos ZIP que contienen registros `.fna`) se descomprimen y se agrupan en un único archivo maestro FASTA (\texttt{dataset\_poc.fasta}).
+
+\subsection{Fase 2: Filtrado por Longitud (Rust)}
+Debido al volumen de datos transcriptómicos y los posibles artefactos de secuenciación, se emplea un filtro de alto rendimiento desarrollado en \textbf{Rust} (\texttt{sars\_filter}). Este binario nativo descarta secuencias atípicas con un coste computacional de $\mathcal{O}(n)$, reteniendo únicamente aquellos genomas cuya longitud biológica plausible se sitúe entre 29,000 y 30,500 pares de bases.
+
+\subsection{Fase 3: Alineamiento Múltiple (MAFFT)}
+Se emplea \textbf{MAFFT} en modo automatizado y multihilo (\texttt{--auto --thread}) para alinear las secuencias filtradas. MAFFT es una herramienta estándar en bioinformática, elegida por su excepcional velocidad y precisión heurística en alineamientos virales masivos.
+
+\subsection{Fase 4: Control de Calidad Matricial (Python/NumPy)}
+El alineamiento resultante es analizado matricialmente por el script \texttt{qc\_alignment.py}. Utilizando las librerías \texttt{NumPy} y \texttt{Biopython}, se mapea el archivo a una matriz bidimensional. Se eliminan genomas completos y posiciones aisladas (columnas del alineamiento) que presenten una proporción excesiva de \textit{gaps}. Adicionalmente, el script genera gráficos estadísticos (\texttt{variability\_plot.pdf}) sobre la distribución de la variabilidad posicional a lo largo del genoma.
+
+\subsection{Fase 5: Inferencia Filogenética (IQ-TREE)}
+Finalmente, se utiliza el software \textbf{IQ-TREE} para inferir la filogenia mediante técnicas de Máxima Verosimilitud (\textit{Maximum Likelihood}). La herramienta realiza primeramente una selección exhaustiva y automática del mejor modelo de sustitución nucleotídica (vía ModelFinder) antes de construir la topología del árbol final, exportado en formato Newick (\texttt{sars\_cov\_2.treefile}).
+
+\section{Requisitos del Sistema y Reproducibilidad}
+
+Para favorecer la portabilidad, el proyecto está diseñado para ejecutarse nativamente en ecosistemas Linux (x86\_64) minimizando el uso de compiladores externos por parte del usuario final.
+
+\subsection{Dependencias}
+\begin{itemize}
+    \item \textbf{uv}: Gestor de dependencias ultrarrápido en Rust, encargado de aprovisionar el entorno virtual de Python.
+    \item \textbf{mafft}: Software de alineamiento (requerido a nivel de sistema).
+    \item \textbf{Binarios locales (\texttt{bin/}):} Para evitar tiempos de compilación y problemas de dependencias, las herramientas \texttt{sars\_filter}, \texttt{iqtree3} y \texttt{datasets} se incluyen de forma estática en el propio repositorio.
+\end{itemize}
+
+\subsection{Ejecución del Pipeline}
+La ejecución es completamente reproducible garantizada por el lockfile (\texttt{uv.lock}). Los pasos para la orquestación son:
+
+\begin{lstlisting}[language=bash]
+# 1. Sincronizar el entorno estricto de Python
+uv sync
+
+# 2. Otorgar permisos de ejecucion a los binarios locales
+chmod +x bin/sars_filter bin/iqtree3 bin/datasets
+
+# 3. Lanzar la topologia DAG de Snakemake (ej: 16 hilos)
+uv run snakemake -c 16
+\end{lstlisting}
+
+Todos los productos intermedios y resultados finales (árbol, histogramas y logs de ejecución) quedarán convenientemente confinados en el directorio \texttt{results/}.
+
+\end{document}
