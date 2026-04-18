@@ -41,7 +41,7 @@ mkdir -p data/raw
 # Download genomes for each lineage
 for lineage in $LINEAGES; do
     echo "Downloading $lineage..."
-    ./datasets download virus genome taxon SARS-CoV-2 \
+    ./bin/datasets download virus genome taxon SARS-CoV-2 \
         --lineage $lineage \
         --complete-only \
         --filename data/raw/${lineage}.zip

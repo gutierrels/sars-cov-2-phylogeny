@@ -35,7 +35,7 @@ cd sars-cov-2-phylogeny
 uv sync
 
 # 3. Dar permisos a los binarios locales
-chmod +x bin/sars_filter bin/iqtree3
+chmod +x bin/sars_filter bin/iqtree3 bin/datasets
 
 # 4. Ejecutar el orquestador (usando 16 hilos)
 uv run snakemake -c 16
