@@ -1,0 +1,147 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath, amsfonts, amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{geometry}
+\usepackage{dirtree}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning}
+\usepackage{booktabs}
+\usepackage{fancyhdr}
+\usepackage{listings}
+
+% Configuración de márgenes
+\geometry{left=2.5cm,right=2.5cm,top=3cm,bottom=3cm}
+
+% Configuración de Fancyhdr (Encabezado y pie de página)
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textbf{Pipeline Filogenético SARS-CoV-2}}
+\fancyhead[R]{\nouppercase{\leftmark}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% Configuración de colores para lstlisting
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.96,0.96,0.94}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegray}\itshape,
+    keywordstyle=\color{blue}\bfseries,
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=10pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    frame=single,
+    rulecolor=\color{black!30}
+}
+\lstset{style=mystyle}
+
+% Estilos para el diagrama TikZ
+\tikzset{
+    process/.style={rectangle, rounded corners, minimum width=4cm, minimum height=1cm, text centered, draw=black, fill=blue!10, font=\sffamily\small\bfseries},
+    arrow/.style={thick,->,>=stealth}
+}
+
+% Título y autor
+\title{\textbf{Arquitectura para Inferencia Filogenética de SARS-CoV-2}}
+\author{Guillermo Gutiérrez Caracuel}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+
+\begin{abstract}
+    Este documento describe un pipeline automatizado de alto rendimiento para la inferencia filogenética de secuencias de SARS-CoV-2. Orquestado mediante \textit{Snakemake}, el flujo de trabajo integra herramientas de bajo nivel en Rust para filtrado inicial, alineamiento paralelo con MAFFT, control de calidad matricial en Python (NumPy/Biopython) y construcción de árboles filogenéticos por Máxima Verosimilitud (\textit{Maximum Likelihood}) usando IQ-TREE.
+\end{abstract}
+
+\vspace{0.5cm}
+
+\section{Introducción}
+El análisis filogenético a gran escala de secuencias virales requiere soluciones eficientes y completamente automatizadas. El objetivo principal de este proyecto es proporcionar una \textbf{arquitectura de automatización y alto rendimiento} capaz de procesar de manera masiva secuencias genómicas del virus SARS-CoV-2. Esto permite generar árboles filogenéticos robustos con una intervención manual mínima, garantizando la reproducibilidad técnica, la escalabilidad estructural y una gran eficiencia computacional.
+
+\section{Arquitectura del Sistema}
+Para asegurar la mantenibilidad y modularidad del software, el repositorio sigue una jerarquía de directorios bien definida que separa los datos crudos, el código fuente y los artefactos generados.
+
+\vspace{0.5cm}
+\dirtree{%
+    .1 sars-cov-2-phylogeny/.
+    .2 bin/ \dots{} Binarios precompilados (\texttt{iqtree3}, \texttt{sars\_filter}, \texttt{datasets}).
+    .2 data/ \dots{} Almacenamiento de secuencias FASTA crudas y procesadas.
+    .2 doc/ \dots{} Documentación académica y técnica.
+    .2 results/ \dots{} Resultados finales (alineamientos, árboles y gráficos QC).
+    .2 sars\_filter/ \dots{} Código fuente en Rust para el filtrado rápido.
+    .2 scripts/ \dots{} Scripts de análisis vectorial en Python.
+    .2 Snakefile \dots{} Grafo de ejecución del orquestador.
+}
+\vspace{0.5cm}
+
+\section{Diseño del Grafo Acíclico Dirigido (DAG)}
+El flujo de ejecución está gobernado por \textbf{Snakemake} a través de un Grafo Acíclico Dirigido (DAG), el cual asegura que cada regla se ejecute únicamente cuando sus dependencias directas e indirectas estén satisfechas.
+
+\begin{center}
+    \begin{tikzpicture}[node distance=2cm]
+        \node (descarga) [process] {1. Descarga (NCBI)};
+        \node (rust) [process, below of=descarga] {2. Rust Filter (\texttt{sars\_filter})};
+        \node (mafft) [process, below of=rust] {3. MAFFT Alignment};
+        \node (python) [process, below of=mafft] {4. Python QC (NumPy)};
+        \node (iqtree) [process, below of=python] {5. IQ-TREE Inference};
+
+        \draw [arrow] (descarga) -- (rust);
+        \draw [arrow] (rust) -- (mafft);
+        \draw [arrow] (mafft) -- (python);
+        \draw [arrow] (python) -- (iqtree);
+    \end{tikzpicture}
+\end{center}
+
+\section{Fundamentos Matemáticos e Implementación}
+
+\subsection{Filtrado de Secuencias (Rust)}
+Para lidiar con el alto volumen de datos genómicos, el primer paso de limpieza se realiza empleando el binario \texttt{sars\_filter} implementado en Rust. Este algoritmo nativo examina iterativamente cada secuencia del genoma viral con una \textbf{complejidad algorítmica de $\mathcal{O}(n)$}, siendo $n$ el número de secuencias analizadas.
+
+El filtro computacional asegura que la secuencia posea una longitud biológicamente plausible en un genoma libre de deleciones críticas, definida estrictamente en el intervalo:
+\begin{equation}
+    L \in [29000, 30500] \text{ pares de bases}
+\end{equation}
+
+\subsection{Inferencia Filogenética (IQ-TREE)}
+La fase final reconstruye la historia evolutiva de las secuencias utilizando la metodología de \textbf{Máxima Verosimilitud} (\textit{Maximum Likelihood}). Bajo este riguroso marco estadístico, IQ-TREE busca la topología del árbol $T$ y los parámetros del modelo evolutivo $\theta$ que maximicen la probabilidad de observar el alineamiento de los datos reales $D$. La función de verosimilitud se define matemáticamente como:
+\begin{equation}
+    \mathcal{L}(\theta, T) = P(D \mid \theta, T)
+\end{equation}
+Para determinar de forma no sesgada el modelo evolutivo óptimo $\theta$, se emplea internamente la herramienta ModelFinder, la cual evalúa distintos modelos de sustitución nucleotídica (ej. GTR+F+I) penalizando la sobreparametrización mediante el \textit{Criterio de Información de Akaike} (AIC) o el \textit{Criterio de Información Bayesiano} (BIC).
+
+\section{Reproducibilidad y Entorno de Ejecución}
+La portabilidad técnica y la consistencia del pipeline a través de diferentes máquinas (basadas en Linux x86\_64) se logra mediante herramientas de aislamiento de software como \texttt{uv} y el suministro de archivos binarios estáticos. A continuación, se detallan los comandos necesarios para reproducir el entorno:
+
+\begin{lstlisting}[language=bash, caption={Instrucciones de orquestación y arranque del pipeline}]
+# 1. Sincronizar el entorno estricto de dependencias de Python
+uv sync
+
+# 2. Otorgar permisos de ejecucion a los binarios locales
+chmod +x bin/sars_filter bin/iqtree3 bin/datasets
+
+# 3. Lanzar la topologia DAG de Snakemake (ej: empleando 16 hilos)
+uv run snakemake -c 16
+\end{lstlisting}
+
+Una vez finalizado el subproceso automatizado, los ficheros resultantes (\texttt{.treefile} en formato Newick y los gráficos de calidad poblacional en \texttt{.pdf}) quedarán localizados en el directorio \texttt{results/}.
+
+\end{document}
