@@ -14,7 +14,7 @@ rule filter_sequences:
     output:
         filtered="data/filtered_poc.fasta"
     shell:
-        "./filter/target/release/filter --input {input.raw} --output {output.filtered} --min-len 29000 --max-len 30500"
+        "./bin/sars_filter --input {input.raw} --output {output.filtered} --min-len 29000 --max-len 30500"
 
 # --- Fase 3: Alineamiento con MAFFT ---
 rule align_sequences:
