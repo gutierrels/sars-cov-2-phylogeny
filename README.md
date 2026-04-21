@@ -1,58 +1,58 @@
-# Pipeline de Inferencia Filogenética para SARS-CoV-2
+# SARS-CoV-2 Phylogenetic Inference Pipeline
 
-Pipeline automatizado de alto rendimiento orquestado con Snakemake. Combina procesamiento de bajo nivel en Rust para el filtrado de secuencias, análisis vectorial en Python (NumPy/Biopython) para el control de calidad, e inferencia de Máxima Verosimilitud. Todo el entorno de ejecución está garantizado y aislado mediante uv.
+High-performance automated pipeline orchestrated with Snakemake. It combines low-level processing in Rust for sequence filtering, vectorized analysis in Python (NumPy/Biopython) for quality control, and Maximum Likelihood inference. The entire execution environment is guaranteed and isolated using uv.
 
-## Requisitos del Sistema (Dependencies)
+## System Requirements (Dependencies)
 
-> **Importante:** Este proyecto está diseñado exclusivamente para entornos **Linux (x86_64)**.
+> **Important:** This project is exclusively designed for **Linux (x86_64)** environments.
 
-Para poder ejecutar el pipeline, es necesario contar con las siguientes dependencias instaladas en el sistema:
+To execute the pipeline, the following dependencies must be installed on your system:
 
-* **uv**: Gestor de paquetes (sustituto de pip/venv).
-* **mafft**: Herramienta de alineamiento múltiple (debe estar en el PATH del sistema).
-* **NCBI Datasets CLI y unzip**: Requeridos únicamente si se va a ejecutar `download.sh`.
+* **uv**: Package manager (pip/venv replacement).
+* **mafft**: Multiple Sequence Alignment tool (must be in the system PATH).
+* **NCBI Datasets CLI and unzip**: Required only if executing `download.sh`.
 
-> **Nota:** Para garantizar la portabilidad sin necesidad de compiladores locales, el filtro rápido de control de calidad (`sars_filter`) y el motor de inferencia filogenética (`iqtree3`) se proporcionan como binarios precompilados en la carpeta `bin/`.
+> **Note:** To guarantee portability without requiring local compilers, the fast quality control filter (`sars_filter`) and the phylogenetic inference engine (`iqtree3`) are provided as pre-compiled binaries in the `bin/` folder.
 
-## Fases del Pipeline
+## Pipeline Phases
 
-El flujo del grafo acíclico dirigido (DAG) de Snakemake se divide en:
+The Snakemake Directed Acyclic Graph (DAG) workflow is divided into:
 
-* **Fase 1 (Bash)**: Descarga de secuencias de variantes (VOCs) desde NCBI.
-* **Fase 2 (Rust)**: Filtrado O(n) por longitud de secuencia usando el binario nativo.
-* **Fase 3 (MAFFT)**: Alineamiento múltiple paralelizado.
-* **Fase 4 (Python/NumPy)**: Limpieza matricial de gaps y generación de histogramas de variabilidad posicional.
-* **Fase 5 (IQ-TREE)**: Construcción del árbol filogenético (Maximum Likelihood) con selección automática de modelo evolutivo.
+* **Phase 1 (Bash)**: Download variant sequences (VOCs) from NCBI.
+* **Phase 2 (Rust)**: O(n) length-based filtering using the native binary.
+* **Phase 3 (MAFFT)**: Parallelized Multiple Sequence Alignment.
+* **Phase 4 (Python/NumPy)**: Matrix-based gap cleaning and positional variability histogram generation.
+* **Phase 5 (IQ-TREE)**: Phylogenetic tree construction (Maximum Likelihood) with automatic evolutionary model selection.
 
-## Instrucciones de Ejecución 
+## Execution Instructions
 
-> **Nota sobre los Datos:** El repositorio incluye un *Toy Dataset* de 100 genomas de la variante **Ómicron (B.1.1.529)** en `data/sample/` para pruebas rápidas. Snakemake lo utilizará automáticamente por defecto a menos que se ejecute manualmente el script de descarga del NCBI.
+> **Note on Data:** The repository includes a *Toy Dataset* of 100 genomes from the **Omicron (B.1.1.529)** variant in `data/sample/` for quick testing. Snakemake will automatically use it by default unless the NCBI download script is manually executed.
 
 ```bash
-# 1. Clonar el repositorio
+# 1. Clone the repository
 git clone https://github.com/gutierrels/sars-cov-2-phylogeny.git
 cd sars-cov-2-phylogeny
 
-# 2. Sincronizar el entorno de Python usando el uv.lock
+# 2. Synchronize the Python environment using uv.lock
 uv sync
 
-# 3. Dar permisos a los binarios locales
+# 3. Grant permissions to local binaries
 chmod +x bin/sars_filter bin/iqtree3 bin/datasets
 
-# 4. Ejecutar el orquestador (usando 16 hilos)
+# 4. Execute the orchestrator (using 16 threads)
 uv run snakemake -c 16
 ```
 
-## Estructura de Resultados (Outputs)
+## Output Structure (Outputs)
 
-Al finalizar, se generará una carpeta `results/` (ignorada en Git) que contendrá:
+Upon completion, a `results/` folder (ignored by Git) will be generated containing:
 
-* `results/tree/sars_cov_2.treefile`: Árbol en formato Newick.
-* `results/qc/variability_plot.pdf`: Histograma de mutaciones/gaps.
-* `results/logs/`: Registros estándar y de error de cada regla.
+* `results/tree/sars_cov_2.treefile`: Tree in Newick format.
+* `results/qc/variability_plot.pdf`: Mutation/gap histogram.
+* `results/logs/`: Standard and error logs for each rule.
 
-## Resultados Esperados (Prueba de Concepto - Variante Ómicron)
-Al ejecutar el pipeline con el *Toy Dataset* incluido, se generarán automáticamente los siguientes análisis:
+## Expected Results (Proof of Concept - Omicron Variant)
+Running the pipeline with the included *Toy Dataset* will automatically generate the following analyses:
 
-![Árbol Filogenético](doc/assets/arbol_circular.svg)
-![Distribución de Mutaciones](doc/assets/histograma.png)
+![Phylogenetic Tree](doc/assets/arbol_circular.svg)
+![Mutation Distribution](doc/assets/histograma.png)

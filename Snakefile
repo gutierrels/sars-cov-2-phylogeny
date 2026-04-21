@@ -1,20 +1,20 @@
 import os
 
-# --- Configuración del pipeline ---
+# --- Pipeline configuration ---
 THREADS = 16
 
-# Lógica de Fallback para el dataset de entrada
+# Fallback logic for input dataset
 RAW_DATASET = "data/dataset_poc.fasta"
 if not os.path.exists(RAW_DATASET):
     RAW_DATASET = "data/sample/poc_100_genomes.fasta"
 
-# --- Regla principal (El objetivo final) ---
+# --- Main rule (Final objective) ---
 rule all:
     input:
         "results/tree/sars_cov_2.treefile",
         "results/qc/variability_plot.pdf"
 
-# --- Fase 2: Filtrado en Rust ---
+# --- Phase 2: Filtering in Rust ---
 rule filter_sequences:
     input:
         raw=RAW_DATASET
@@ -23,7 +23,7 @@ rule filter_sequences:
     shell:
         "./bin/sars_filter --input {input.raw} --output {output.filtered} --min-len 29000 --max-len 30500"
 
-# --- Fase 3: Alineamiento con MAFFT ---
+# --- Phase 3: Alignment with MAFFT ---
 rule align_sequences:
     input:
         "data/filtered_poc.fasta"
@@ -35,7 +35,7 @@ rule align_sequences:
     shell:
         "mafft --auto --thread {threads} {input} > {output} 2> {log}"
 
-# --- Fase 4: Limpieza y Gráfica (Python + NumPy) ---
+# --- Phase 4: Cleaning and Plotting (Python + NumPy) ---
 rule quality_control:
     input:
         "results/alignment/aligned.fasta"
@@ -45,7 +45,7 @@ rule quality_control:
     shell:
         "uv run scripts/qc_alignment.py --input {input} --out-fasta {output.clean_aln} --out-plot {output.plot}"
 
-# --- Fase 5: Inferencia Filogenética con IQ-TREE ---
+# --- Phase 5: Phylogenetic Inference with IQ-TREE ---
 rule build_tree:
     input:
         "results/alignment/aligned_filtered.fasta"
